@@ -1,0 +1,16 @@
+{
+  "clientes": [
+    {
+      "correo": "cliente1@patente.cl",
+      "clave": "123456",
+      "expira": "2025-06-30",
+      "huella": ""
+    },
+    {
+      "correo": "cliente2@patente.cl",
+      "clave": "abcdef",
+      "expira": "2025-07-15",
+      "huella": ""
+    }
+  ]
+}

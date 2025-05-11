@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Pro Patente Chile</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .login-container {
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      background: #3db2ff;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2a95d1;
+    }
+    .error {
+      color: #ff7272;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Acceso a Pro Patente Chile</h2>
+    <div class="error" id="mensajeError"></div>
+    <input type="email" id="correo" placeholder="Correo electrónico" required />
+    <input type="password" id="clave" placeholder="Contraseña" required />
+    <button onclick="iniciarSesion()">Ingresar</button>
+  </div>
+
+  <script>
+    async function iniciarSesion() {
+      const correo = document.getElementById('correo').value.trim();
+      const clave = document.getElementById('clave').value.trim();
+      const errorDiv = document.getElementById('mensajeError');
+      errorDiv.textContent = '';
+
+      if (!correo || !clave) {
+        errorDiv.textContent = 'Debes ingresar correo y contraseña.';
+        return;
+      }
+
+      try {
+        const res = await fetch('./clientes.json');
+        const data = await res.json();
+        const usuario = data.clientes.find(u => u.correo === correo && u.clave === clave);
+
+        if (!usuario) {
+          errorDiv.textContent = 'Correo o clave incorrectos.';
+          return;
+        }
+
+        const hoy = new Date().toISOString().split('T')[0];
+        if (hoy > usuario.expira) {
+          errorDiv.textContent = 'Cuenta expirada. Contacta al administrador.';
+          return;
+        }
+
+        const huella = navigator.userAgent + screen.width + screen.height;
+
+        if (usuario.huella && usuario.huella !== huella) {
+          errorDiv.textContent = 'Esta cuenta ya está activa en otro dispositivo.';
+          return;
+        }
+
+        // Guardar sesión en localStorage
+        localStorage.setItem('usuarioActivo', JSON.stringify({ correo, huella, expira: usuario.expira }));
+
+        // Redirigir a app
+        window.location.href = './app.html';
+
+      } catch (e) {
+        errorDiv.textContent = 'Error al verificar credenciales. Intenta más tarde.';
+      }
+    }
+  </script>
+</body>
+</html>
