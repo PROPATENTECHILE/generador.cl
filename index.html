@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -75,9 +76,11 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Redirigir automáticamente si ya hay sesión activa
+    // Evitar bucle de redirección
     onAuthStateChanged(auth, (user) => {
-      if (user) {
+      const uid = localStorage.getItem("uid");
+      const token = localStorage.getItem("token_sesion");
+      if (user && uid && token) {
         window.location.href = "app.html";
       }
     });
@@ -118,7 +121,6 @@
       }
     }
 
-    // 💡 ESTA LÍNEA ES LA CLAVE para que el botón funcione:
     window.login = login;
   </script>
 </body>
