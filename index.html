@@ -1,6 +1,8 @@
-<html lang="es"><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - Pro Patente</title>
   <style>
     body {
@@ -48,15 +50,15 @@
 <body>
   <div class="login-container">
     <h2>Iniciar Sesión</h2>
-    <input type="email" id="email" placeholder="Correo electrónico">
-    <input type="password" id="password" placeholder="Contraseña">
+    <input type="email" id="email" placeholder="Correo electrónico" />
+    <input type="password" id="password" placeholder="Contraseña" />
     <button onclick="login()">Ingresar</button>
     <p id="error-message"></p>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -72,6 +74,13 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // Redirigir automáticamente si ya hay sesión activa
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "app.html";
+      }
+    });
 
     async function login() {
       const email = document.getElementById("email").value.trim();
@@ -108,7 +117,9 @@
         console.error(error);
       }
     }
+
+    // 💡 ESTA LÍNEA ES LA CLAVE para que el botón funcione:
+    window.login = login;
   </script>
-
-
-</body></html>
+</body>
+</html>
