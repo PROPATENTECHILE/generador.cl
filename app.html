@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<style>
+@font-face {
+  font-family: 'LED Dot-Matrix';
+  src: url('LED Dot-Matrix.ttf') format('truetype');
+}
+</style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pro Patente Chile</title>
@@ -170,6 +176,7 @@
         <option value="bold">Negrita</option>
       </select>
       <select id="fontFamily">
+<option value="LED Dot-Matrix">PUNTOS</option>
         <option value="Inter">Inter</option>
         <option value="Arial">Arial</option>
         <option value="Roboto Condensed">Roboto Condensed</option>
@@ -394,7 +401,7 @@
       await cerrarSesion();
     }
 
-    // Verificación periódica de expiración
+    // Verificación periódica de expiración cada 5 minutos
     setInterval(async () => {
       const refreshedDoc = await getDoc(doc(db, "usuarios", uid));
       const fechaExp = refreshedDoc.data().expira.toDate();
@@ -415,4 +422,5 @@
   window.cerrarSesion = cerrarSesion;
 </script>
 
+  window.cerrarSesion = cerrarSesion;
 </html>
