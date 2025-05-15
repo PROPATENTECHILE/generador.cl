@@ -102,7 +102,7 @@
         }
 
         const data = userDoc.data();
-        const fechaExp = new Date(data.expira);
+        const fechaExp = data.expira.toDate();
         const ahora = new Date();
         if (ahora > fechaExp) {
           errorEl.textContent = "Licencia expirada.";
