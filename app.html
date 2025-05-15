@@ -405,6 +405,10 @@
       const refreshedDoc = await getDoc(doc(db, "usuarios", uid));
       const fechaExp = refreshedDoc.data().expira.toDate();
       const ahora = new Date();
+      if (refreshedDoc.data().token_sesion !== tokenLocal) {
+        alert("Tu cuenta ha sido iniciada en otro dispositivo.");
+        await cerrarSesion();
+      }
       if (ahora > fechaExp) {
         alert("Tu licencia ha expirado.");
         await cerrarSesion();
