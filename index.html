@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Pro Patente Chile</title>
+<html lang="es"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Pro Patente</title>
   <style>
     body {
       margin: 0;
@@ -22,94 +20,95 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
       width: 100%;
       max-width: 400px;
-    }
-    h2 {
       text-align: center;
-      margin-bottom: 24px;
     }
-    input {
+    input, button {
+      display: block;
       width: 100%;
       padding: 12px;
-      margin-bottom: 16px;
+      margin-top: 20px;
       border: none;
       border-radius: 8px;
-      font-size: 1rem;
+      font-size: 16px;
     }
     button {
-      width: 100%;
-      padding: 12px;
-      font-size: 1rem;
-      background: #3db2ff;
-      border: none;
+      background-color: #4caf50;
       color: white;
-      font-weight: bold;
-      border-radius: 8px;
       cursor: pointer;
     }
     button:hover {
-      background: #2a95d1;
+      background-color: #45a049;
     }
-    .error {
-      color: #ff7272;
-      text-align: center;
-      margin-bottom: 10px;
+    #error-message {
+      color: red;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
-    <h2>Acceso a Pro Patente Chile</h2>
-    <div class="error" id="mensajeError"></div>
-    <input type="email" id="correo" placeholder="Correo electrónico" required />
-    <input type="password" id="clave" placeholder="Contraseña" required />
-    <button onclick="iniciarSesion()">Ingresar</button>
+    <h2>Iniciar Sesión</h2>
+    <input type="email" id="email" placeholder="Correo electrónico">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button onclick="login()">Ingresar</button>
+    <p id="error-message"></p>
   </div>
 
-  <script>
-    async function iniciarSesion() {
-      const correo = document.getElementById('correo').value.trim();
-      const clave = document.getElementById('clave').value.trim();
-      const errorDiv = document.getElementById('mensajeError');
-      errorDiv.textContent = '';
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
 
-      if (!correo || !clave) {
-        errorDiv.textContent = 'Debes ingresar correo y contraseña.';
-        return;
-      }
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVbnbZIKNoGwr8xJj9lvkml5QBf5RPTCA",
+      authDomain: "propatente.firebaseapp.com",
+      projectId: "propatente",
+      storageBucket: "propatente.firebasestorage.app",
+      messagingSenderId: "514353367543",
+      appId: "1:514353367543:web:52e8cd7fa24c8278d906f2",
+      measurementId: "G-6VVE5QSDEY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorEl = document.getElementById("error-message");
 
       try {
-        const res = await fetch('./clientes.json');
-        const data = await res.json();
-        const usuario = data.clientes.find(u => u.correo === correo && u.clave === clave);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const userDocRef = doc(db, "usuarios", user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-        if (!usuario) {
-          errorDiv.textContent = 'Correo o clave incorrectos.';
+        if (!userDoc.exists()) {
+          errorEl.textContent = "Usuario no registrado.";
           return;
         }
 
-        const hoy = new Date().toISOString().split('T')[0];
-        if (hoy > usuario.expira) {
-          errorDiv.textContent = 'Cuenta expirada. Contacta al administrador.';
+        const data = userDoc.data();
+        const fechaExp = new Date(data.expira);
+        const ahora = new Date();
+        if (ahora > fechaExp) {
+          errorEl.textContent = "Licencia expirada.";
           return;
         }
 
-        const huella = navigator.userAgent + screen.width + screen.height;
+        const tokenActual = crypto.randomUUID();
+        await updateDoc(userDocRef, { token_sesion: tokenActual });
 
-        if (usuario.huella && usuario.huella !== huella) {
-          errorDiv.textContent = 'Esta cuenta ya está activa en otro dispositivo.';
-          return;
-        }
-
-        // Guardar sesión en localStorage
-        localStorage.setItem('usuarioActivo', JSON.stringify({ correo, huella, expira: usuario.expira }));
-
-        // Redirigir a app
-        window.location.href = './app.html';
-
-      } catch (e) {
-        errorDiv.textContent = 'Error al verificar credenciales. Intenta más tarde.';
+        localStorage.setItem("token_sesion", tokenActual);
+        localStorage.setItem("uid", user.uid);
+        window.location.href = "app.html";
+      } catch (error) {
+        errorEl.textContent = "Credenciales incorrectas o error al iniciar sesión.";
+        console.error(error);
       }
     }
   </script>
-</body>
-</html>
+
+
+</body></html>
