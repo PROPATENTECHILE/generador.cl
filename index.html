@@ -59,7 +59,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -76,12 +76,36 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Evitar bucle de redirección
-    onAuthStateChanged(auth, (user) => {
-      const uid = localStorage.getItem("uid");
-      const token = localStorage.getItem("token_sesion");
-      if (user && uid && token) {
-        window.location.href = "app.html";
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const uid = user.uid;
+        const token = localStorage.getItem("token_sesion");
+        const userDocRef = doc(db, "usuarios", uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists()) {
+          await signOut(auth);
+          localStorage.clear();
+          location.href = "index.html";
+          return;
+        }
+
+        const data = userDoc.data();
+        const fechaExp = data.expira.toDate();
+        const ahora = new Date();
+
+        if (ahora > fechaExp) {
+          alert("Tu licencia ha expirado.");
+          await signOut(auth);
+          localStorage.clear();
+          location.href = "index.html";
+          return;
+        }
+
+        if (token) {
+          localStorage.setItem("uid", uid);
+          window.location.href = "app.html";
+        }
       }
     });
 
